@@ -86,40 +86,98 @@ router.post('/patient', (req, res) => {
 
 
 router.get('/patient/all', (req, res) => {
-       const getAllPatientsQuery = 'SELECT * FROM Patient_Data_Registration';
+  const getAllPatientsQuery = 'SELECT * FROM Patient_Data_Registration';
 
-    db.query(getAllPatientsQuery, (error, results) => {
-      if (error) {
-        console.error("Error fetching registered patients: " + error.message);
-        return res.status(500).json({ error: 'Error fetching registered patients' });
-      }
+  db.query(getAllPatientsQuery, (error, results) => {
+    if (error) {
+      console.error("Error fetching registered patients: " + error.message);
+      return res.status(500).json({ error: 'Error fetching registered patients' });
+    }
 
-      res.status(200).json(results);
-    });
+    res.status(200).json(results);
   });
-
-router.get('/patient/search', (req, res) => {
-  const { uhidOrPhoneNumber } = req.query;
+});
+// Modify the search endpoint to accept a name parameter
+router.get('/patient/namesearch', (req, res) => {
+  const { name } = req.query;
 
   const searchQuery = `
     SELECT * FROM Patient_Data_Registration 
-    WHERE uhid = ? OR mobile_number = ? LIMIT 1
+    WHERE REPLACE(CONCAT(first_Name, last_Name), ' ', '') LIKE ?
+      OR REPLACE(CONCAT(last_Name, first_Name), ' ', '') LIKE ?
+      OR first_Name LIKE ?
+      OR last_Name LIKE ?
   `;
 
-  db.query(searchQuery, [uhidOrPhoneNumber, uhidOrPhoneNumber], (error, result) => {
+  const searchName = `%${name.replace(/\s/g, '')}%`; // Remove spaces from the search term
+
+  db.query(searchQuery, [searchName, searchName, searchName, searchName], (error, result) => {
     if (error) {
       console.error("Error searching for patient:", error.message);
       res.status(500).json({ error: 'Internal Server Error' });
     } else {
       if (result.length > 0) {
-        const patientData = result[0];
-        res.json(patientData);
+        res.json(result);
       } else {
         res.status(404).json({ error: 'Patient not found' });
       }
     }
   });
 });
+
+
+
+
+
+  router.get('/patient/search', (req, res) => {
+    const { uhidOrPhoneNumber } = req.query;
+  
+    const searchQuery = `
+      SELECT * FROM Patient_Data_Registration 
+      WHERE uhid = ? OR mobile_number = ?
+    `;
+  
+    db.query(searchQuery, [uhidOrPhoneNumber, uhidOrPhoneNumber], (error, result) => {
+      if (error) {
+        console.error("Error searching for patient:", error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        if (result.length > 0) {
+          if (result.length > 1) {
+            // Multiple patients found for the same uhid or mobile number
+            res.json(result);
+          } else {
+            const patientData = result[0];
+            res.json(patientData);
+          }
+        } else {
+          res.status(404).json({ error: 'Patient not found' });
+        }
+      }
+    });
+  });
+
+
+  router.get('/patient/all', (req, res) => {
+    db.getConnection((connectionError, connection) => {
+      if (connectionError) {
+        console.error("Database connection failed: " + connectionError.stack);
+        return res.status(500).json({ error: 'Database connection failed' });
+      }
+  
+      const getAllPatientsQuery = 'SELECT * FROM Patient_Data_Registration ';
+  
+      connection.query(getAllPatientsQuery, (error, results) => {
+        if (error) {
+          console.error("Error fetching registered patients: " + error.message);
+          return res.status(500).json({ error: 'Error fetching registered patients' });
+        }
+  
+        res.status(200).json(results);
+        connection.release();
+      });
+    });
+  });
 
 router.put('/patient/:identifier', (req, res) => {
   const identifier = req.params.identifier;
