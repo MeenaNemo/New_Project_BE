@@ -1,14 +1,5 @@
 const mysql = require("mysql");
 
-// const db = mysql.createConnection({
-//   host: "fivewhyrds.ctxjvxl0k0dq.us-east-1.rds.amazonaws.com",
-//   user: "fivewhyadmin",
-//   password: "Yayaya#143",
-//   database: "HMS_Demo",
-//   timezone: '+05:30', 
-// });
-
-
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",

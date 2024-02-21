@@ -9,6 +9,7 @@ moment.tz.setDefault("Asia/Kolkata");
 const userRoute = require('./src/user.js');
 const registrationRoute = require('./src/registration.js'); 
 const doctorRoute = require('./src/doctor.js'); 
+const appointmentRoute = require('./src/appointment.js'); 
 
 
 const app = express();
@@ -27,6 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/user', userRoute);
 app.use('/registration', registrationRoute);
 app.use('/doctor', doctorRoute);
+app.use('/appointment', appointmentRoute);
 
 
 app.listen(port, () => {

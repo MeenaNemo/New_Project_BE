@@ -9,7 +9,7 @@ moment.tz.setDefault("Asia/Kolkata");
 const router = express.Router();
 
 const createUserTableQuery = `
-  CREATE TABLE IF NOT EXISTS User_Inventory_Demo (
+  CREATE TABLE IF NOT EXISTS User_Inventory (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     user_first_name VARCHAR(255),
     user_last_name VARCHAR(255),
@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS Event_History (
 
 db.query(createUserTableQuery, (error, result) => {
   if (error) {
-    console.error("Error creating User_Inventory_Demo table: " + error.message);
+    console.error("Error creating User_Inventory table: " + error.message);
   } else {
-    console.log("Table 'User_Inventory_Demo' created successfully");
+    console.log("Table 'User_Inventory' created successfully");
   }
 });
 
@@ -62,7 +62,7 @@ router.post("/register", async (req, res) => {
     }
 
     const existingEmailQuery =
-      "SELECT COUNT(*) as count FROM User_Inventory_Demo WHERE user_email = ?";
+      "SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?";
     db.query(existingEmailQuery, [reqData.user_email], async (error, results) => {
       if (error) {
         throw new Error("Database error: " + error.message);
@@ -79,7 +79,7 @@ router.post("/register", async (req, res) => {
       const istTimestamp = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
       const insertUserQuery = `
-          INSERT INTO User_Inventory_Demo (user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_timestamp, user_department)
+          INSERT INTO User_Inventory (user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_timestamp, user_department)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
@@ -119,7 +119,7 @@ router.get("/check-email", async (req, res) => {
     const userEmail = req.query.email;
 
     const existingEmailQuery =
-      "SELECT COUNT(*) as count FROM User_Inventory_Demo WHERE user_email = ?";
+      "SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?";
 
     db.query(existingEmailQuery, [userEmail], (error, results) => {
       if (error) {
@@ -146,7 +146,7 @@ router.post("/login", async (req, res) => {
     const { loginIdentifier, password } = req.body;
 
     const getUserQuery = `
-    SELECT * FROM User_Inventory_Demo WHERE user_email = ? OR user_mobile_number = ?
+    SELECT * FROM User_Inventory WHERE user_email = ? OR user_mobile_number = ?
   `;
 
     db.query(
@@ -214,7 +214,7 @@ router.post("/logout", async (req, res) => {
 
     const getUserQuery = `
       SELECT user_first_name, user_last_name, user_role
-      FROM User_Inventory_Demo
+      FROM User_Inventory
       WHERE user_id = ?
     `;
 
